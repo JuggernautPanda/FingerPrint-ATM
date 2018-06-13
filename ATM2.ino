@@ -124,6 +124,7 @@ int guessPassword(){
       lcd.print("U ID & #:");
       Serial.println("Validating Account ");
       i=0;
+      return 0;
     }
     if (count == 4)
     {
@@ -165,7 +166,7 @@ int guessPassword(){
       lcd.print("Try again");
       delay(2000);
       lcd.clear();
-      lcd.print("Enter Acc:");
+      lcd.print("Enter Amt:");
       lcd.setCursor(0,1);
       i=0;
     //  digitalWrite(buzzer, LOW); 
@@ -241,7 +242,7 @@ else
       lcd.print("Invalid account");
       delay(2000);
       lcd.setCursor(0,1);
-      lcd.print("Press No and #");
+      lcd.print("Amt and #");
   }
 }
 uint8_t getFingerprintID() {
