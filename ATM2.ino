@@ -4,7 +4,7 @@
 #else
 #include <NewSoftSerial.h>
 #endif
-#define buzzer A7
+#define buzzer 13
 #include <Password.h>
 #include<LiquidCrystal.h>
 #include<EEPROM.h>
@@ -330,6 +330,7 @@ int getFingerprintIDez() {
  digitalWrite(13, HIGH);
  delay(1000);
  digitalWrite(6, HIGH);
+ digitalWrite(13, LOW);
  delay(500);
  digitalWrite(6, LOW);
  delay(25000);
@@ -344,13 +345,13 @@ int getFingerprintIDez() {
  lcd.setCursor(0,0);
  lcd.print("Collect Cash");
  lcd.setCursor(0,1);
- lcd.print("Enter Acc:");
+ lcd.print("Enter Amt:");
  return finger.fingerID;
 } 
 
 void beep()
 {
   digitalWrite(buzzer, HIGH);
-  delay(2000);
+  delay(200);
   digitalWrite(buzzer, LOW);
 }
