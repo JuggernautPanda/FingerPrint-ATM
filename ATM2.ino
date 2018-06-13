@@ -4,7 +4,7 @@
 #else
 #include <NewSoftSerial.h>
 #endif
-#define buzzer 12
+#define buzzer A7
 #include <Password.h>
 #include<LiquidCrystal.h>
 #include<EEPROM.h>
@@ -13,11 +13,14 @@ LiquidCrystal lcd(7,8,9,10,11,12);
 char passwd[4];
 char pass[4],pass1[4];
 int i=0;
+int k=0;
+int count = 0;
 char customKey=0;
 
 int getFingerprintIDez();
 int led = 13;
 int p = 0;
+int z = 0;
 int c1=0;
 // pin #2 is IN from sensor (GREEN wire)
 // pin #3 is OUT from arduino  (WHITE wire)
@@ -33,7 +36,7 @@ Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 Password password = Password( "1359" );
 
 const byte ROWS = 4; // Four rows
-const byte COLS = 3; // Three columns
+const byte COLS = 4; // Three columns
 // Define the Keymap
 char keys[ROWS][COLS] = {
  {'1','2','3'},
@@ -41,6 +44,15 @@ char keys[ROWS][COLS] = {
  {'7','8','9'},
  {'*','0','#'}
 };
+
+
+char hexaKeys[ROWS][COLS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+
 // Connect keypad ROW0, ROW1, ROW2 and ROW3 to these Arduino pins.
 byte rowPins[ROWS] = { 4, A5, A4, A3 };// Connect keypad COL0, COL1 and COL2 to these Arduino pins.
 byte colPins[COLS] = { A2, A1, A0 };
@@ -48,12 +60,14 @@ byte colPins[COLS] = { A2, A1, A0 };
 
 // Create the Keypad
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+Keypad customKeypad = Keypad( makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
 
 void setup(){
  lcd.begin(16,2);
  pinMode(6,OUTPUT);
  pinMode(5,OUTPUT);
  pinMode(13,OUTPUT);
+ pinMode(buzzer,OUTPUT);
  Serial.begin(9600);
  keypad.addEventListener(keypadEvent); //add an event listener for this keypad
  keypad.setDebounceTime(100);
@@ -62,7 +76,11 @@ void setup(){
  lcd.print("  ATM ");
  delay(2000);
  lcd.clear();
- lcd.print("Enter Ur Acc No followed by #:");
+ lcd.setCursor(0,0);
+ lcd.print("Enter Amount");
+ lcd.setCursor(0,1);
+ lcd.print("and #:");
+ //lcd.setCursor(0,1);
  //for(int j=0;j<4;j++)
   //EEPROM.write(j, j+49);
   for(int j=0;j<4;j++)
@@ -71,7 +89,6 @@ void setup(){
 
 void loop(){
  keypad.getKey();
-
 }
 
 //take care of some special events
@@ -81,45 +98,52 @@ void keypadEvent(KeypadEvent eKey){
      Serial.print("Pressed: ");
      Serial.println(eKey);
      switch (eKey){
-       case '#': 
-       {
-        
-        p = guessPassword(); 
-        break;
-        
-       }
-       case '*': 
-       {
-        starPressed(p); 
-        break;
-       }
+       case '#': z = guessPassword(); break;
+       case '*': starPressed(z); break;
         default:
+              count++;
               password.append(eKey);
               passwd[i++]=eKey;
-               lcd.print("*");
+              lcd.print(eKey);
+              
  }
  
  }}
 
 int guessPassword(){
-    Serial.print("Checking acc no... ");
-    for(int j=0;j<4;j++)
+    Serial.print("Processing... ");
+    if (count == 3)
+    {
+      count = 0;
+      lcd.clear();
+      lcd.print("Amount entered");
+      delay(2000);
+      lcd.clear();
+      lcd.print("Now enter Acc");
+      lcd.setCursor(0,1);
+      lcd.print("U ID & #:");
+      Serial.println("Validating Account ");
+      i=0;
+    }
+    if (count == 4)
+    {
+      count = 0;
+    for(int j=0;j<count;j++)
     pass[j]=EEPROM.read(j);
+    
+    
     if(!(strncmp(passwd, pass,4)))
     {
-      Serial.println("Valid Account ");
+      lcd.clear();
+      /*lcd.print("Valid Press *");
+      lcd.setCursor(0,1);
+      lcd.print("and fingerprint");
+      Serial.println("Valid Account ");*/
+      lcd.print("* &  finger");
+      lcd.setCursor(0,1);
       digitalWrite(led, HIGH);
       beep();
-      lcd.clear();
-      lcd.print("Acc No Accepted");
-      delay(2000);
-      lcd.setCursor(0,1);
-      lcd.clear();
-      lcd.print("Now press * for authentication:");
-      Serial.print("Now press * for authentication:");
-      delay(2000);
-      lcd.clear();
-      lcd.setCursor(0,1);
+      Serial.print("Now press # for amount:");
       i=0;
       digitalWrite(led, LOW);
        digitalWrite(5, HIGH);
@@ -133,19 +157,41 @@ int guessPassword(){
     }
     else
     {
-      Serial.println("INVALID Account No ");
-      digitalWrite(buzzer, HIGH);
+     
+     // digitalWrite(buzzer, HIGH);
       lcd.clear();
+      lcd.print("Access Denied...");
+      lcd.setCursor(0,1);
+      lcd.print("Try again");
+      delay(2000);
+      lcd.clear();
+      lcd.print("Enter Acc:");
+      lcd.setCursor(0,1);
+      i=0;
+    //  digitalWrite(buzzer, LOW); 
+     /* lcd.clear();
+      lcd.setCursor(0,0);
       lcd.print("Access Denied...");
       delay(2000);
       lcd.setCursor(0,1);
       lcd.clear();
-      lcd.print("Try again....");
+      lcd.print("Try again");
       delay(2000);
       lcd.clear();
+      lcd.print("Enter Acc No");
+      delay(2000);
+      lcd.clear();
+      //lcd.setCursor(0,0);
+      //delay(2000);
+      //lcd.clear();
       i=0;
-      digitalWrite(buzzer, LOW);
+      Serial.println("INVALID Account No ");
+      digitalWrite(buzzer, HIGH);
+      
+      
+      digitalWrite(buzzer, LOW); */
       return 0;
+      }
     }
   /*  if (password.evaluate()){           Serial.println("VALID PASSWORD "); //
           digitalWrite(5, HIGH);
@@ -162,14 +208,16 @@ int guessPassword(){
              password.reset(); //resets password after INCORRECT entry
     } */
 
-    return 1;
+    //return 1;
 }
 
 void starPressed(int t){
+      
      // set the data rate for the sensor serial port
      if (t)
      {
- finger.begin(57600);
+
+      finger.begin(57600);
  
  
  if (finger.verifyPassword()) {
@@ -178,6 +226,9 @@ void starPressed(int t){
    Serial.println("Did not find fingerprint sensor :(");
    while (1);
  }
+ 
+ //lcd.setCursor(0,1);
+// lcd.print("Now press * for authentication:");
  Serial.println("Waiting for valid finger...");
  unsigned long timeNow = millis();
  while (millis() - 20000 < timeNow) getFingerprintIDez();
@@ -185,11 +236,11 @@ void starPressed(int t){
 else
 {
   Serial.println("Enter valid account");
-  lcd.clear();
-      lcd.print("Enter valid account");
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Invalid account");
       delay(2000);
       lcd.setCursor(0,1);
-      lcd.clear();
       lcd.print("Press No and #");
   }
 }
@@ -259,10 +310,9 @@ uint8_t getFingerprintID() {
 
 // returns -1 if failed, otherwise returns ID #
 int getFingerprintIDez() {
-  lcd.setCursor(0,1);
-  lcd.clear();
-  lcd.print("Authenticating finger print");
-  delay(100);
+ //lcd.clear();
+// lcd.setCursor(0,0);
+ //lcd.print("Processing");
  uint8_t p = finger.getImage();
  if (p != FINGERPRINT_OK)  return -1;
 
@@ -271,7 +321,10 @@ int getFingerprintIDez() {
 
  p = finger.fingerFastSearch();
  if (p != FINGERPRINT_OK)  return -1;
- 
+
+ //lcd.clear();
+// lcd.setCursor(0,0);
+ //lcd.print("Collect your cash");
  // found a match!
  digitalWrite(5, HIGH);
  digitalWrite(13, HIGH);
@@ -285,20 +338,19 @@ int getFingerprintIDez() {
 
  Serial.print("Found ID #"); Serial.print(finger.fingerID); 
  Serial.print(" with confidence of "); Serial.println(finger.confidence);
+ //delay(5000);
+ beep();
  lcd.clear();
+ lcd.setCursor(0,0);
+ lcd.print("Collect Cash");
  lcd.setCursor(0,1);
-
-  lcd.print("Collect your cash");
-  delay(5000);
-  lcd.clear();
- lcd.setCursor(0,1);
- lcd.print("Enter Your acc");
+ lcd.print("Enter Acc:");
  return finger.fingerID;
 } 
 
 void beep()
 {
   digitalWrite(buzzer, HIGH);
-  delay(20);
+  delay(2000);
   digitalWrite(buzzer, LOW);
 }
