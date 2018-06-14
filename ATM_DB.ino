@@ -140,7 +140,7 @@ int guessPassword(){
       i=0;
       return 0;
     }
-    if (count == 4)
+    else if (count == 4)
     {
       count = 0;
     for(int j=0;j<4;j++)
@@ -254,7 +254,7 @@ int guessPassword(){
     }*/
     else
     {
-     
+     count = 0;
      // digitalWrite(buzzer, HIGH);
       lcd.clear();
       lcd.print("Access Denied...");
@@ -267,6 +267,14 @@ int guessPassword(){
       i=0;
       return 0;
       }
+    }
+    else
+    {
+      count =0;
+      lcd.clear();
+      lcd.print("Invalid acc or amt.");
+      lcd.setCursor(0,1);
+      lcd.print("Enter amt:");
     }
 }
 
