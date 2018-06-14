@@ -404,6 +404,11 @@ int getFingerprintIDez() {
  p = finger.fingerFastSearch();
  if (p != FINGERPRINT_OK)  return -1;
 
+ lcd.clear();
+ lcd.setCursor(0,0);
+ lcd.print("Valid Finger");
+ lcd.setCursor(0,1);
+ lcd.print("Dispensing cash:");
  /*if (finger.fingerID == t)
  {
   Serial.println(finger.fingerID);
